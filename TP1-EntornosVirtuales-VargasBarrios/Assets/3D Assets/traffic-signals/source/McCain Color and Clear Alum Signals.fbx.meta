@@ -3,7 +3,57 @@ guid: 5ecb24ca2e5ae2c43b01cbdb4e5eb02b
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: 12INCH MCCAIN ALUM SIGNAL
+    second: {fileID: 2100000, guid: b5eb7f84b2ab4f444a48d58d0536ef60, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX AMBER OFF
+    second: {fileID: 2100000, guid: c751c9d6d42891248a465886e4a46f5f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX AMBER ON
+    second: {fileID: 2100000, guid: 43eceb8da39d00b448f1f1f9cb7cb060, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX CLEAR OFF
+    second: {fileID: 2100000, guid: edf9d51eef5547941a2d079f00f1786b, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX GREEN OFF
+    second: {fileID: 2100000, guid: 6911bc3a8f587b94480e9806ef80b932, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX GREEN ON
+    second: {fileID: 2100000, guid: ec1a4d11293a45340af69601b4e5ade3, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX RED OFF
+    second: {fileID: 2100000, guid: dd8036b21f672e44aac2ea03aa783332, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: GTX RED ON
+    second: {fileID: 2100000, guid: f19ecf32e8d1c1543a582ec4dab7b300, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: e0e834db2557d104ba86fbc9ed159d46, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: PLASTIC RIM
+    second: {fileID: 2100000, guid: 578173df7a2164d4fa1f888a73347679, type: 2}
   materials:
     materialImportMode: 2
     materialName: 0
