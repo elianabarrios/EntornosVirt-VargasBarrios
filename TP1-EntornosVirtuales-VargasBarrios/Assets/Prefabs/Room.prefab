@@ -54,7 +54,11 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: c081eef348e215841b389118a9113123, type: 2}
     - target: {fileID: 7449782648777001352, guid: 1cfc2186e59804e489b63eb718dd77fb, type: 3}
       propertyPath: m_Name
-      value: Untitled
+      value: Room
+      objectReference: {fileID: 0}
+    - target: {fileID: 7449782648777001352, guid: 1cfc2186e59804e489b63eb718dd77fb, type: 3}
+      propertyPath: m_Layer
+      value: 7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
