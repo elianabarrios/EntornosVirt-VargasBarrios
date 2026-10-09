@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
@@ -6,16 +7,27 @@ using UnityEngine.XR.ARSubsystems;
 
 public class PuertaPlacer : MonoBehaviour
 {
+    [Header("AR")]
     [SerializeField] ARRaycastManager raycastManager;
     [SerializeField] ARPlaneManager planeManager;
+
+    [Header("Prefabs")]
     [SerializeField] GameObject reticulaPrefab;
-    [SerializeField] GameObject puertaPrefab;     // PuertaSimon
+    [SerializeField] GameObject puertaPrefab;
+
+    [Header("UI")]
     [SerializeField] Button botonColocar;
     [SerializeField] GameObject panelColocar;
     [SerializeField] GameObject panelSimon;
+    [SerializeField] TMP_Text textoEstado;
+
+    [Header("Ajustes")]
+    [SerializeField] float alturaCamaraSobrePiso = 1.4f;   // cuánto más abajo que el celular está el piso
+    [SerializeField] float tamanoMinimoPlano = 0.4f;       // ignora planos más chicos (metros)
+    [SerializeField] bool permitirSinPared = true;         // plan B: colocar delante de la cámara
+    [SerializeField] float distanciaPlanB = 2.5f;
 
     static readonly List<ARRaycastHit> hits = new List<ARRaycastHit>();
-    static readonly List<ARRaycastHit> hitsPiso = new List<ARRaycastHit>();
 
     GameObject reticula;
     Pose poseValida;
@@ -37,14 +49,14 @@ public class PuertaPlacer : MonoBehaviour
         var cam = Camera.main;
         var centro = new Vector2(Screen.width / 2f, Screen.height / 2f);
 
-        if (raycastManager.Raycast(centro, hits, TrackableType.PlaneWithinPolygon))
+        if (raycastManager.Raycast(centro, hits, TrackableType.PlaneWithinBounds))
         {
             foreach (var h in hits)
             {
                 var plano = planeManager.GetPlane(h.trackableId);
                 if (plano == null || plano.alignment != PlaneAlignment.Vertical) continue;
+                if (plano.size.x < tamanoMinimoPlano || plano.size.y < tamanoMinimoPlano) continue;
 
-                // Normal de la pared, siempre apuntando hacia el jugador y sin inclinación
                 Vector3 normal = plano.normal;
                 if (Vector3.Dot(normal, cam.transform.position - h.pose.position) < 0f)
                     normal = -normal;
@@ -62,37 +74,52 @@ public class PuertaPlacer : MonoBehaviour
         if (hayPared)
             reticula.transform.SetPositionAndRotation(poseValida.position, poseValida.rotation);
 
-        botonColocar.interactable = hayPared;
+        botonColocar.interactable = hayPared || permitirSinPared;
+
+        if (textoEstado != null)
+        {
+            int verticales = 0;
+            foreach (var p in planeManager.trackables)
+                if (p.alignment == PlaneAlignment.Vertical) verticales++;
+
+            textoEstado.text =
+                $"Estado AR: {ARSession.state}\n" +
+                $"Planos: {planeManager.trackables.count} (verticales: {verticales})\n" +
+                $"Pared: {hayPared}";
+        }
     }
 
-    // Lo llama el botón "Colocar"
+    // Lo llama el botón
     public void Colocar()
     {
-        if (!hayPared || colocada) return;
+        if (colocada) return;
+        var cam = Camera.main;
 
-        Vector3 pos = poseValida.position;
-        Vector3 normal = poseValida.rotation * Vector3.forward;
+        Vector3 pos;
+        Quaternion rot;
 
-        // Altura del piso: rayo hacia abajo desde un poco delante de la pared
-        float alturaPiso = Camera.main.transform.position.y - 1.4f; // plan B
-        var rayo = new Ray(pos + normal * 0.5f, Vector3.down);
-        if (raycastManager.Raycast(rayo, hitsPiso, TrackableType.PlaneWithinPolygon))
+        if (hayPared)
         {
-            foreach (var h in hitsPiso)
-            {
-                var p = planeManager.GetPlane(h.trackableId);
-                if (p != null && p.alignment == PlaneAlignment.HorizontalUp)
-                {
-                    alturaPiso = h.pose.position.y;
-                    break;
-                }
-            }
+            pos = new Vector3(poseValida.position.x,
+                              cam.transform.position.y - alturaCamaraSobrePiso,
+                              poseValida.position.z);
+            rot = poseValida.rotation;
         }
+        else if (permitirSinPared)
+        {
+            // Plan B: 2,5 m delante de la cámara, mirando hacia el jugador
+            Vector3 adelante = cam.transform.forward;
+            adelante.y = 0f;
+            adelante.Normalize();
+            pos = cam.transform.position + adelante * distanciaPlanB;
+            pos.y = cam.transform.position.y - alturaCamaraSobrePiso;
+            rot = Quaternion.LookRotation(-adelante, Vector3.up);
+        }
+        else return;
 
-        Instantiate(puertaPrefab, new Vector3(pos.x, alturaPiso, pos.z), poseValida.rotation);
+        Instantiate(puertaPrefab, pos, rot);
         colocada = true;
 
-        // Limpiar: ocultar retícula y planos, cambiar de UI
         Destroy(reticula);
         planeManager.enabled = false;
         foreach (var p in planeManager.trackables) p.gameObject.SetActive(false);
