@@ -8,12 +8,32 @@ Shader "Custom/Pared"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalPipeline" }
+        Tags { "RenderType" = "Opaque" "Queue" = "Geometry-10" "RenderPipeline" = "UniversalPipeline" }
 
         Pass
         {
             ColorMask 0
             ZWrite Off
+            Cull Off
+            Stencil { Ref 1 Comp Always Pass Replace }
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct A { float4 p : POSITION; };
+            struct V { float4 p : SV_POSITION; };
+
+            V vert(A i)
+            {
+                V o;
+                o.p = TransformObjectToHClip(i.p.xyz);
+                return o;
+            }
+
+            half4 frag(V i) : SV_Target { return 0; }
+            ENDHLSL
         }
     }
 }

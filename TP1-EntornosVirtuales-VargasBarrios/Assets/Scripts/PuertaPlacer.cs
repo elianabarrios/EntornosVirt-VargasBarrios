@@ -22,17 +22,25 @@ public class PuertaPlacer : MonoBehaviour
     [SerializeField] TMP_Text textoEstado;
 
     [Header("Ajustes")]
-    [SerializeField] float alturaCamaraSobrePiso = 1.4f;   // cuánto más abajo que el celular está el piso
-    [SerializeField] float tamanoMinimoPlano = 0.4f;       // ignora planos más chicos (metros)
-    [SerializeField] bool permitirSinPared = true;         // plan B: colocar delante de la cámara
+    [SerializeField] float alturaCamaraSobrePiso = 1.4f;
+    [SerializeField] float tamanoMinimoPlano = 0.4f;
+    [SerializeField] bool permitirSinPared = true;
     [SerializeField] float distanciaPlanB = 2.5f;
+
+    [Header("Diagnóstico")]
+    [SerializeField] bool ocultarHabitacion = true;   // desactiva el hijo "Room" al colocar (para probar)
 
     static readonly List<ARRaycastHit> hits = new List<ARRaycastHit>();
 
     GameObject reticula;
+    GameObject puertaInstancia;
     Pose poseValida;
     bool hayPared;
     bool colocada;
+    string modoColocacion = "-";
+
+    ARSessionState ultimoEstado;
+    int perdidasTracking;
 
     void Start()
     {
@@ -43,6 +51,13 @@ public class PuertaPlacer : MonoBehaviour
 
     void Update()
     {
+        // Contar cuántas veces se pierde el seguimiento
+        if (ultimoEstado == ARSessionState.SessionTracking &&
+            ARSession.state != ARSessionState.SessionTracking)
+            perdidasTracking++;
+        ultimoEstado = ARSession.state;
+
+        ActualizarTexto();
         if (colocada) return;
 
         hayPared = false;
@@ -70,26 +85,44 @@ public class PuertaPlacer : MonoBehaviour
             }
         }
 
-        reticula.SetActive(hayPared);
-        if (hayPared)
-            reticula.transform.SetPositionAndRotation(poseValida.position, poseValida.rotation);
-
-        botonColocar.interactable = hayPared || permitirSinPared;
-
-        if (textoEstado != null)
+        if (reticula != null)
         {
-            int verticales = 0;
-            foreach (var p in planeManager.trackables)
-                if (p.alignment == PlaneAlignment.Vertical) verticales++;
-
-            textoEstado.text =
-                $"Estado AR: {ARSession.state}\n" +
-                $"Planos: {planeManager.trackables.count} (verticales: {verticales})\n" +
-                $"Pared: {hayPared}";
+            reticula.SetActive(hayPared);
+            if (hayPared)
+                reticula.transform.SetPositionAndRotation(poseValida.position, poseValida.rotation);
         }
+
+        // El botón solo se habilita con seguimiento estable
+        bool trackingOk = ARSession.state == ARSessionState.SessionTracking;
+        botonColocar.interactable = trackingOk && (hayPared || permitirSinPared);
     }
 
-    // Lo llama el botón
+    void ActualizarTexto()
+    {
+        if (textoEstado == null) return;
+        var cam = Camera.main.transform;
+
+        int verticales = 0;
+        foreach (var p in planeManager.trackables)
+            if (p.alignment == PlaneAlignment.Vertical) verticales++;
+
+        string puerta = "sin colocar";
+        if (puertaInstancia != null)
+        {
+            Vector3 rel = cam.InverseTransformPoint(puertaInstancia.transform.position);
+            puerta = $"x {rel.x:F1}  y {rel.y:F1}  z {rel.z:F1}  (dist {rel.magnitude:F1} m)";
+        }
+
+        textoEstado.text =
+            $"Estado: {ARSession.state}\n" +
+            $"Perdidas de tracking: {perdidasTracking}\n" +
+            $"Planos: {planeManager.trackables.count} (vert: {verticales})\n" +
+            $"Pared: {hayPared}  Modo: {modoColocacion}\n" +
+            $"Cam: {cam.position.x:F1}, {cam.position.y:F1}, {cam.position.z:F1}\n" +
+            $"Puerta (rel. cámara): {puerta}";
+    }
+
+    // Lo llama el botón "Colocar"
     public void Colocar()
     {
         if (colocada) return;
@@ -100,6 +133,7 @@ public class PuertaPlacer : MonoBehaviour
 
         if (hayPared)
         {
+            modoColocacion = "PARED";
             pos = new Vector3(poseValida.position.x,
                               cam.transform.position.y - alturaCamaraSobrePiso,
                               poseValida.position.z);
@@ -107,7 +141,7 @@ public class PuertaPlacer : MonoBehaviour
         }
         else if (permitirSinPared)
         {
-            // Plan B: 2,5 m delante de la cámara, mirando hacia el jugador
+            modoColocacion = "PLAN B";
             Vector3 adelante = cam.transform.forward;
             adelante.y = 0f;
             adelante.Normalize();
@@ -117,13 +151,37 @@ public class PuertaPlacer : MonoBehaviour
         }
         else return;
 
-        Instantiate(puertaPrefab, pos, rot);
+        puertaInstancia = Instantiate(puertaPrefab, pos, rot);
         colocada = true;
 
+        if (ocultarHabitacion)
+        {
+            var room = puertaInstancia.transform.Find("ObjectsScene");
+            if (room != null) room.gameObject.SetActive(false);
+        }
+
         Destroy(reticula);
+        reticula = null;
         planeManager.enabled = false;
         foreach (var p in planeManager.trackables) p.gameObject.SetActive(false);
         panelColocar.SetActive(false);
         panelSimon.SetActive(true);
+    }
+
+    // volver a colocar sin reabrir la app
+    public void Reiniciar()
+    {
+        if (puertaInstancia != null) Destroy(puertaInstancia);
+        if (reticula == null)
+        {
+            reticula = Instantiate(reticulaPrefab);
+            reticula.SetActive(false);
+        }
+        colocada = false;
+        modoColocacion = "-";
+        planeManager.enabled = true;
+        foreach (var p in planeManager.trackables) p.gameObject.SetActive(true);
+        panelColocar.SetActive(true);
+        panelSimon.SetActive(false);
     }
 }
