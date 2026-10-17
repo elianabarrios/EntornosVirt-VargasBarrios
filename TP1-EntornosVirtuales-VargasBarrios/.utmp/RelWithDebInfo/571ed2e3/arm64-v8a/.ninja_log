@@ -1,0 +1,10 @@
+# ninja log v5
+71	9381	8139061292169907	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	c4f2ab2063fd3f0e
+90	9519	8139061292673585	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	14d37a1ef37052f9
+32	9841	8139061293729590	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	62a8be1538556eff
+48	9952	8139061299127123	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	142d30f675375de3
+103	12125	8139061316055182	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	4b1b3a298cf72461
+1	12614	8139061323891695	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	266b3c06e378cdac
+9520	18922	8139061385845043	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	30ac16f9a5f859b4
+9402	21833	8139061416254498	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	32d04317fd46d4d8
+21840	23452	8139061430188486	C:/Users/Eliana/Documents/GitHub/EntornosFinal/EntornosVirt-VargasBarrios/TP1-EntornosVirtuales-VargasBarrios/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/RelWithDebInfo/571ed2e3/obj/arm64-v8a/libgame.so	662d0f2d0c938a59
