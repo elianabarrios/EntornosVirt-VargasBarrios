@@ -168,6 +168,27 @@ public class PuertaPlacer : MonoBehaviour
         panelSimon.SetActive(true);
     }
 
+    public void AbrirPuerta()
+    {
+        if (puertaInstancia == null)
+        {
+            Debug.LogWarning("Se tiene que instanciar la puerta con AR", this);
+            return;
+        }
+
+        var puertaPuzzle =
+            puertaInstancia.GetComponentInChildren<PuertaPuzzle>(true);
+
+        if (puertaPuzzle == null)
+        {
+            Debug.LogError(
+                "nO HAY PUERTAPUZZLE", this);
+            return;
+        }
+
+        puertaPuzzle.Abrir();
+    }
+
     // volver a colocar sin reabrir la app
     public void Reiniciar()
     {
