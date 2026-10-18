@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
 using UnityEngine;
 
 public class RegistroSecuencia : MonoBehaviour
@@ -13,6 +14,15 @@ public class RegistroSecuencia : MonoBehaviour
 
     public int ronda;
     public bool turnoJugador;
+    [Min(1)] public int rondasParaGanar = 3;
+    public UnityEvent alGanar = new UnityEvent();
+    public bool JuegoGanado { get; private set; }
+
+    [Header("Efectos de resultado")]
+    [Min(0.01f)] public float tiempoDestelloDerrota = 0.12f;
+    public AudioSource fuenteAudio;
+    public AudioClip sonidoDerrota;
+    public AudioClip sonidoVictoria;
 
     void OnEnable()
     {
@@ -35,6 +45,11 @@ public class RegistroSecuencia : MonoBehaviour
     public void IniciarJuego()
     {
         StopAllCoroutines();
+        if (fuenteAudio != null) fuenteAudio.Stop();
+
+        JuegoGanado = false;
+        rondasParaGanar = Mathf.Max(1, rondasParaGanar);
+
         turnoJugador = false;
         ronda = 0;
         secuencia.Clear();
@@ -92,8 +107,9 @@ public class RegistroSecuencia : MonoBehaviour
     }
 
     void RegistrarColor(int color, string nombre)
+
     {
-        if (!turnoJugador || semaforo == null || !semaforo.isActiveAndEnabled) return;
+        if (JuegoGanado || !turnoJugador || semaforo == null || !semaforo.isActiveAndEnabled) return;
 
         StopAllCoroutines();
         coloresPulsados.Add(nombre);
@@ -103,8 +119,7 @@ public class RegistroSecuencia : MonoBehaviour
         if (color != secuencia[posicion])
         {
             turnoJugador = false;
-            Debug.Log("Te equivocaste en la ronda " + ronda + ". Reinicia para jugar otra vez.");
-            StartCoroutine(MostrarPulsacion(color, false));
+            StartCoroutine(MostrarDerrota());
             return;
         }
 
@@ -112,7 +127,6 @@ public class RegistroSecuencia : MonoBehaviour
         if (rondaCompleta)
         {
             turnoJugador = false;
-            Debug.Log("Ronda completada.");
         }
 
         StartCoroutine(MostrarPulsacion(color, rondaCompleta));
@@ -127,7 +141,52 @@ public class RegistroSecuencia : MonoBehaviour
         yield return new WaitForSeconds(tiempoPulsacion);
         if (semaforo != null) semaforo.ApagarTodo();
 
-        if (rondaCompleta) StartCoroutine(SiguienteRonda());
+        if (!rondaCompleta) yield break;
+
+        if (ronda >= rondasParaGanar)
+        {
+            GanarJuego();
+        }
+        else
+        {
+            StartCoroutine(SiguienteRonda());
+        }
+    }
+
+    void GanarJuego()
+    {
+        if (JuegoGanado) return;
+
+        JuegoGanado = true;
+        turnoJugador = false;
+        if (semaforo != null) semaforo.EncenderTodo();
+        ReproducirSonido(sonidoVictoria);
+        Debug.Log("Puzzle completado. Ganaste en la ronda " + ronda + ".");
+        alGanar.Invoke();
+    }
+
+    IEnumerator MostrarDerrota()
+    {
+        ReproducirSonido(sonidoDerrota);
+        float duracion = Mathf.Max(0.01f, tiempoDestelloDerrota);
+
+        for (int i = 0; i < 2; i++)
+        {
+            if (semaforo == null || !semaforo.isActiveAndEnabled) yield break;
+            semaforo.EncenderTodo();
+            yield return new WaitForSeconds(duracion);
+
+            if (semaforo == null) yield break;
+            semaforo.ApagarTodo();
+            yield return new WaitForSeconds(duracion);
+        }
+    }
+
+    void ReproducirSonido(AudioClip clip)
+    {
+        if (fuenteAudio == null || clip == null) return;
+        fuenteAudio.Stop();
+        fuenteAudio.PlayOneShot(clip);
     }
 
     public void ReiniciarSecuencia()
@@ -138,7 +197,9 @@ public class RegistroSecuencia : MonoBehaviour
     void OnDisable()
     {
         StopAllCoroutines();
+        if (fuenteAudio != null) fuenteAudio.Stop();
         turnoJugador = false;
         if (semaforo != null) semaforo.ApagarTodo();
     }
+
 }

@@ -75,6 +75,17 @@ public class SemaforoLuces : MonoBehaviour
     public void EncenderAmarillo() { EncenderColor(1); }
     public void EncenderVerde() { EncenderColor(2); }
 
+    public void EncenderTodo()
+    {
+        if (!listo || !isActiveAndEnabled) return;
+
+        ApagarTodo();
+
+        luzRoja.sharedMaterial = rojoOn;
+        luzAmarilla.sharedMaterial = amarilloOn;
+        luzVerde.sharedMaterial = verdeOn;
+    }
+
     void EncenderColor(int color)
     {
         if (!listo || !isActiveAndEnabled) return;
