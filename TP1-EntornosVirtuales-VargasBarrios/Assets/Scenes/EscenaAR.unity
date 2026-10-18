@@ -969,8 +969,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RegistroSecuencia
   semaforo: {fileID: 0}
-  pausaEntreRondas: 1
-  tiempoPulsacion: 0.2
+  pausaEntreRondas: 3
+  tiempoPulsacion: 0.35
   secuencia: 
   coloresPulsados: []
   ronda: 0
