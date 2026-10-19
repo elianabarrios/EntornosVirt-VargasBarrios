@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class BichitoLogica : MonoBehaviour
 {
+    public AudioSource sonidoPasos;
     public Animator animatorBichito;
 
     public Transform puntoOculto;
@@ -12,6 +13,7 @@ public class BichitoLogica : MonoBehaviour
     public float tiempoQuieto = 2f;
 
     private bool aparecio = false;
+
 
     void Start()
     {
@@ -45,6 +47,8 @@ public class BichitoLogica : MonoBehaviour
 
     IEnumerator MoverHasta(Vector3 destino)
     {
+        sonidoPasos.Play();
+
         while (Vector3.Distance(transform.position, destino) > 0.01f)
         {
             transform.position = Vector3.MoveTowards(
@@ -57,6 +61,9 @@ public class BichitoLogica : MonoBehaviour
         }
 
         transform.position = destino;
+
+        sonidoPasos.Stop();
     }
+
 
 }

@@ -4,6 +4,7 @@ public class PuertaPuzzle : MonoBehaviour
 {
     public Animator animatorPuerta;
     public string triggerAbrir = "Abrir";
+    public BichitoLogica bichito;
 
     public bool Abierta { get; private set; }
 
@@ -20,6 +21,14 @@ public class PuertaPuzzle : MonoBehaviour
         else
         {
             Debug.Log("Desbloqueada");
+        }
+    }
+
+    public void MostrarBichito()
+    {
+        if (bichito != null)
+        {
+            bichito.Aparecer();
         }
     }
 }
