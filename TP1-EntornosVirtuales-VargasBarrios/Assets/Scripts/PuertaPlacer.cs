@@ -1,208 +1,65 @@
-using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.XR.ARFoundation;
-using UnityEngine.XR.ARSubsystems;
+using Vuforia;
 
-public class PuertaPlacer : MonoBehaviour
+public class MarcadorPuerta : MonoBehaviour
 {
-    [Header("AR")]
-    [SerializeField] ARRaycastManager raycastManager;
-    [SerializeField] ARPlaneManager planeManager;
-
-    [Header("Prefabs")]
-    [SerializeField] GameObject reticulaPrefab;
-    [SerializeField] GameObject puertaPrefab;
-
-    [Header("UI")]
-    [SerializeField] Button botonColocar;
-    [SerializeField] GameObject panelColocar;
+    [Header("Qué se instancia")]
+    [SerializeField] GameObject puertaPrefab;        // el prefab ObjectsScene (de Assets/Prefabs)
     [SerializeField] GameObject panelSimon;
-    [SerializeField] TMP_Text textoEstado;
 
-    [Header("Ajustes")]
-    [SerializeField] float alturaCamaraSobrePiso = 1.4f;
-    [SerializeField] float tamanoMinimoPlano = 0.4f;
-    [SerializeField] bool permitirSinPared = true;
-    [SerializeField] float distanciaPlanB = 2.5f;
+    [Header("Ubicación respecto del marcador")]
+    [SerializeField] float distanciaDetras = 1.5f;           // metros hacia adentro de la pared
+    [SerializeField] float alturaMarcadorSobrePiso = 1.4f;   // altura del centro del marcador sobre el piso
+    [SerializeField] float segundosEstable = 1f;             // tiempo con el marcador bien detectado
+    [SerializeField, Range(0f, 1f)] float toleranciaVertical = 0.3f;  // 0 = exactamente vertical
 
-    [Header("Diagnóstico")]
-    [SerializeField] bool ocultarHabitacion = true;   // desactiva el hijo "Room" al colocar (para probar)
+    ObserverBehaviour observer;
+    float tiempoTracked;
+    bool colocado;
+    string aviso = "";
 
-    static readonly List<ARRaycastHit> hits = new List<ARRaycastHit>();
-
-    GameObject reticula;
-    GameObject puertaInstancia;
-    Pose poseValida;
-    bool hayPared;
-    bool colocada;
-    string modoColocacion = "-";
-
-    ARSessionState ultimoEstado;
-    int perdidasTracking;
-
-    void Start()
+    void Awake()
     {
-        reticula = Instantiate(reticulaPrefab);
-        reticula.SetActive(false);
+        observer = GetComponent<ObserverBehaviour>();
         panelSimon.SetActive(false);
     }
 
     void Update()
     {
-        // Contar cuántas veces se pierde el seguimiento
-        if (ultimoEstado == ARSessionState.SessionTracking &&
-            ARSession.state != ARSessionState.SessionTracking)
-            perdidasTracking++;
-        ultimoEstado = ARSession.state;
+        if (colocado) return;
 
-        ActualizarTexto();
-        if (colocada) return;
+        bool tracked = observer.TargetStatus.Status == Status.TRACKED;
+        bool vertical = Mathf.Abs(transform.up.y) <= toleranciaVertical;
 
-        hayPared = false;
-        var cam = Camera.main;
-        var centro = new Vector2(Screen.width / 2f, Screen.height / 2f);
+        aviso = (tracked && !vertical) ? "Pegá el marcador en una pared (vertical)" : "";
 
-        if (raycastManager.Raycast(centro, hits, TrackableType.PlaneWithinBounds))
-        {
-            foreach (var h in hits)
-            {
-                var plano = planeManager.GetPlane(h.trackableId);
-                if (plano == null || plano.alignment != PlaneAlignment.Vertical) continue;
-                if (plano.size.x < tamanoMinimoPlano || plano.size.y < tamanoMinimoPlano) continue;
+        if (tracked && vertical) tiempoTracked += Time.deltaTime;
+        else tiempoTracked = 0f;
 
-                Vector3 normal = plano.normal;
-                if (Vector3.Dot(normal, cam.transform.position - h.pose.position) < 0f)
-                    normal = -normal;
-                normal.y = 0f;
-                if (normal.sqrMagnitude < 0.01f) continue;
-                normal.Normalize();
-
-                poseValida = new Pose(h.pose.position, Quaternion.LookRotation(normal, Vector3.up));
-                hayPared = true;
-                break;
-            }
-        }
-
-        if (reticula != null)
-        {
-            reticula.SetActive(hayPared);
-            if (hayPared)
-                reticula.transform.SetPositionAndRotation(poseValida.position, poseValida.rotation);
-        }
-
-        // El botón solo se habilita con seguimiento estable
-        bool trackingOk = ARSession.state == ARSessionState.SessionTracking;
-        botonColocar.interactable = trackingOk && (hayPared || permitirSinPared);
+        if (tiempoTracked >= segundosEstable) Colocar();
     }
 
-    void ActualizarTexto()
+    void Colocar()
     {
-        if (textoEstado == null) return;
-        var cam = Camera.main.transform;
+        colocado = true;
 
-        int verticales = 0;
-        foreach (var p in planeManager.trackables)
-            if (p.alignment == PlaneAlignment.Vertical) verticales++;
+        // Normal de la pared, horizontal, apuntando hacia el jugador
+        Vector3 normal = transform.up;
+        normal.y = 0f;
+        normal.Normalize();
 
-        string puerta = "sin colocar";
-        if (puertaInstancia != null)
-        {
-            Vector3 rel = cam.InverseTransformPoint(puertaInstancia.transform.position);
-            puerta = $"x {rel.x:F1}  y {rel.y:F1}  z {rel.z:F1}  (dist {rel.magnitude:F1} m)";
-        }
+        Vector3 pos = transform.position - normal * distanciaDetras;   // hacia adentro de la pared
+        pos.y = transform.position.y - alturaMarcadorSobrePiso;        // apoyada en el piso
+        Quaternion rot = Quaternion.LookRotation(normal, Vector3.up);  // +Z hacia el jugador
 
-        textoEstado.text =
-            $"Estado: {ARSession.state}\n" +
-            $"Perdidas de tracking: {perdidasTracking}\n" +
-            $"Planos: {planeManager.trackables.count} (vert: {verticales})\n" +
-            $"Pared: {hayPared}  Modo: {modoColocacion}\n" +
-            $"Cam: {cam.position.x:F1}, {cam.position.y:F1}, {cam.position.z:F1}\n" +
-            $"Puerta (rel. cámara): {puerta}";
-    }
-
-    // Lo llama el botón "Colocar"
-    public void Colocar()
-    {
-        if (colocada) return;
-        var cam = Camera.main;
-
-        Vector3 pos;
-        Quaternion rot;
-
-        if (hayPared)
-        {
-            modoColocacion = "PARED";
-            pos = new Vector3(poseValida.position.x,
-                              cam.transform.position.y - alturaCamaraSobrePiso,
-                              poseValida.position.z);
-            rot = poseValida.rotation;
-        }
-        else if (permitirSinPared)
-        {
-            modoColocacion = "PLAN B";
-            Vector3 adelante = cam.transform.forward;
-            adelante.y = 0f;
-            adelante.Normalize();
-            pos = cam.transform.position + adelante * distanciaPlanB;
-            pos.y = cam.transform.position.y - alturaCamaraSobrePiso;
-            rot = Quaternion.LookRotation(-adelante, Vector3.up);
-        }
-        else return;
-
-        puertaInstancia = Instantiate(puertaPrefab, pos, rot);
-        colocada = true;
-
-        if (ocultarHabitacion)
-        {
-            var room = puertaInstancia.transform.Find("ObjectsScene");
-            if (room != null) room.gameObject.SetActive(false);
-        }
-
-        Destroy(reticula);
-        reticula = null;
-        planeManager.enabled = false;
-        foreach (var p in planeManager.trackables) p.gameObject.SetActive(false);
-        panelColocar.SetActive(false);
+        Instantiate(puertaPrefab, pos, rot);
         panelSimon.SetActive(true);
     }
 
-    public void AbrirPuerta()
+    void OnGUI()
     {
-        if (puertaInstancia == null)
-        {
-            Debug.LogWarning("Se tiene que instanciar la puerta con AR", this);
-            return;
-        }
-
-        var puertaPuzzle =
-            puertaInstancia.GetComponentInChildren<PuertaPuzzle>(true);
-
-        if (puertaPuzzle == null)
-        {
-            Debug.LogError(
-                "nO HAY PUERTAPUZZLE", this);
-            return;
-        }
-
-        puertaPuzzle.Abrir();
-    }
-
-    // volver a colocar sin reabrir la app
-    public void Reiniciar()
-    {
-        if (puertaInstancia != null) Destroy(puertaInstancia);
-        if (reticula == null)
-        {
-            reticula = Instantiate(reticulaPrefab);
-            reticula.SetActive(false);
-        }
-        colocada = false;
-        modoColocacion = "-";
-        planeManager.enabled = true;
-        foreach (var p in planeManager.trackables) p.gameObject.SetActive(true);
-        panelColocar.SetActive(true);
-        panelSimon.SetActive(false);
+        if (aviso == "") return;
+        GUI.skin.label.fontSize = 44;
+        GUI.Label(new Rect(30, 80, Screen.width - 60, 200), aviso);
     }
 }
