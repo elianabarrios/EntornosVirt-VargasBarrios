@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class BichitoLogica : MonoBehaviour
 {
@@ -11,9 +12,8 @@ public class BichitoLogica : MonoBehaviour
 
     public float velocidad = 1f;
     public float tiempoQuieto = 2f;
-
+    public UnityEvent alTerminarAparicion = new UnityEvent();
     private bool aparecio = false;
-
 
     void Start()
     {
@@ -43,6 +43,7 @@ public class BichitoLogica : MonoBehaviour
         yield return MoverHasta(puntoOculto.position);
 
         animatorBichito.gameObject.SetActive(false);
+        alTerminarAparicion.Invoke();
     }
 
     IEnumerator MoverHasta(Vector3 destino)

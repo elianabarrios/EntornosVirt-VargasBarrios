@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class RegistroSecuencia : MonoBehaviour
 {
+
+    public ControladorJuego controlador;
     public SemaforoLuces semaforo;
     public float pausaEntreRondas = 1f;
     public float tiempoPulsacion = 0.2f;
@@ -15,6 +17,7 @@ public class RegistroSecuencia : MonoBehaviour
     public int ronda;
     public bool turnoJugador;
     [Min(1)] public int rondasParaGanar = 3;
+    public UnityEvent alTerminarAparicion = new UnityEvent();
     public UnityEvent alGanar = new UnityEvent();
     public bool JuegoGanado { get; private set; }
 
@@ -23,6 +26,8 @@ public class RegistroSecuencia : MonoBehaviour
     public AudioSource fuenteAudio;
     public AudioClip sonidoDerrota;
     public AudioClip sonidoVictoria;
+
+
 
     void OnEnable()
     {
@@ -33,9 +38,18 @@ public class RegistroSecuencia : MonoBehaviour
     {
         yield return null;
 
-        while (semaforo == null || !semaforo.isActiveAndEnabled)
+        while (
+                (controlador != null && !controlador.IntroTerminada)
+                || semaforo == null
+                || !semaforo.isActiveAndEnabled
+            )
         {
-            semaforo = FindAnyObjectByType<SemaforoLuces>();
+            if (controlador != null && controlador.PartidaFinalizada)
+                yield break;
+
+            if (semaforo == null || !semaforo.isActiveAndEnabled)
+                semaforo = FindAnyObjectByType<SemaforoLuces>();
+
             yield return new WaitForSeconds(0.2f);
         }
 
@@ -44,6 +58,11 @@ public class RegistroSecuencia : MonoBehaviour
 
     public void IniciarJuego()
     {
+        if (controlador != null &&
+            (!controlador.IntroTerminada || controlador.PartidaFinalizada))
+        {
+            return;
+        }
         StopAllCoroutines();
         if (fuenteAudio != null) fuenteAudio.Stop();
 
@@ -119,6 +138,13 @@ public class RegistroSecuencia : MonoBehaviour
         if (color != secuencia[posicion])
         {
             turnoJugador = false;
+
+            if (controlador != null)
+            {
+                float espera = 4f * Mathf.Max(0.01f, tiempoDestelloDerrota);
+                controlador.RegistrarDerrota(espera);
+            }
+
             StartCoroutine(MostrarDerrota());
             return;
         }
@@ -162,6 +188,8 @@ public class RegistroSecuencia : MonoBehaviour
         if (semaforo != null) semaforo.EncenderTodo();
         ReproducirSonido(sonidoVictoria);
         Debug.Log("Puzzle completado. Ganaste en la ronda " + ronda + ".");
+        if (controlador != null)
+            controlador.RegistrarVictoria();
         alGanar.Invoke();
     }
 
