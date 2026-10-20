@@ -46,6 +46,10 @@ public class ControladorJuego : MonoBehaviour
     {
         video.Play();
     }
+    public void SaltarIntro()
+    {
+        TerminarIntro(video);
+    }
 
     void TerminarIntro(VideoPlayer reproductor)
     {
