@@ -750,13 +750,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RegistroSecuencia
   controlador: {fileID: 635301136}
   semaforo: {fileID: 1096399972}
-  pausaEntreRondas: 1
+  pausaEntreRondas: 0.5
   tiempoPulsacion: 0.35
   secuencia: 
   coloresPulsados: []
   ronda: 0
   turnoJugador: 0
-  rondasParaGanar: 8
+  rondasParaGanar: 5
   alTerminarAparicion:
     m_PersistentCalls:
       m_Calls: []
