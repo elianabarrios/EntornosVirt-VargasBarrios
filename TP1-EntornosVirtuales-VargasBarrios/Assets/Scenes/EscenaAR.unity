@@ -475,7 +475,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RegistroSecuencia
   semaforo: {fileID: 0}
-  pausaEntreRondas: 3
+  pausaEntreRondas: 8
   tiempoPulsacion: 0.35
   secuencia: 
   coloresPulsados: []
@@ -485,9 +485,9 @@ MonoBehaviour:
   alGanar:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: PuertaPlacer, Assembly-CSharp
-        m_MethodName: AbrirPuerta
+      - m_Target: {fileID: 2013958727}
+        m_TargetAssemblyTypeName: PuertaPuzzle, Assembly-CSharp
+        m_MethodName: Abrir
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -799,7 +799,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 194.49785, y: -120}
+  m_AnchoredPosition: {x: 194.49805, y: -120}
   m_SizeDelta: {x: 358.9957, y: 210}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &727710876
@@ -907,7 +907,7 @@ GameObject:
   - component: {fileID: 752516060}
   - component: {fileID: 752516059}
   - component: {fileID: 752516058}
-  - component: {fileID: 752516062}
+  - component: {fileID: 752516061}
   m_Layer: 0
   m_Name: ImageTarget
   m_TagString: Untagged
@@ -1009,7 +1009,7 @@ MonoBehaviour:
   mMotionHint: 1
   mTrackingOptimization: 0
   mTrackingOptimizationNeedsUpgrade: 0
-  mPreview: {fileID: 752516062}
+  mPreview: {fileID: 752516061}
 --- !u!4 &752516060
 Transform:
   m_ObjectHideFlags: 0
@@ -1026,7 +1026,7 @@ Transform:
   - {fileID: 1873976323}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
---- !u!114 &752516062
+--- !u!114 &752516061
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1807,6 +1807,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: ObjectsScene
       objectReference: {fileID: 0}
+    - target: {fileID: 700730491173093069, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.43
+      objectReference: {fileID: 0}
+    - target: {fileID: 700730491173093069, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 3.98
+      objectReference: {fileID: 0}
+    - target: {fileID: 1385909717459660584, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.93
+      objectReference: {fileID: 0}
+    - target: {fileID: 1385909717459660584, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 8.32
+      objectReference: {fileID: 0}
+    - target: {fileID: 3063535617907679548, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -1.36
+      objectReference: {fileID: 0}
     - target: {fileID: 8126969461058778069, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.5
@@ -1874,6 +1894,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 410802113190623249, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
   m_PrefabInstance: {fileID: 1873976322}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2013958727 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2215095565337014129, guid: 0160225a6427cb842a47a34ad1df1192, type: 3}
+  m_PrefabInstance: {fileID: 1873976322}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d36899d3ad4001a438bcb522544a7821, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PuertaPuzzle
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
